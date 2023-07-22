@@ -1,3 +1,76 @@
 from django.shortcuts import render
+from django.views import View
+from django.contrib.auth.models import User
+from django.contrib import messages
+import re
+from django.http import HttpResponseRedirect
+from django.contrib.auth import login
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 
-# Create your views here.
+
+@csrf_exempt
+def SignUpView(request):
+    if request.method=='GET':
+        return render(request,'app/signUp.html')
+    else:
+        try:
+            email=request.POST.get('email','').strip()
+            username=request.POST.get('username','').strip()
+            name=request.POST.get('name','').strip()
+            password=request.POST.get('password','').strip()
+
+            #regular expression for password
+            if len(password)<8:
+                raise ValueError("please provide password in atleast 8 character")
+            #regular expression for email
+            email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_regex,email):
+                raise ValueError("please provide valid format of email")
+            #validating username
+            if len(username)==0:
+                raise ValueError("please provide username")
+            #validating firstname
+            if len(name)==0:
+                raise ValueError("name cannot be empty")
+            #validating email
+            if User.objects.filter(email=email).exists():
+                raise ValueError("email already exist")
+            #validating username
+            if User.objects.filter(username=username).exists():
+                raise ValueError("username already exist")
+            
+            
+            user=User.objects.create_user(username=username,email=email,first_name=name)
+            user.set_password(password)
+            user.save()
+
+            messages.success(request,"SignUp successfully")
+            return HttpResponseRedirect('/login')
+        except Exception as e:
+                messages.error(request, str(e))
+                return render(request, 'app/signUp.html')
+
+@csrf_exempt
+def LoginView(request):
+    if request.method=='GET':
+        return render(request,'app/login.html')
+    else:
+        try:
+            username=request.POST.get('username','').strip()
+            password=request.POST.get('password','').strip()
+
+            if not User.objects.filter(username=username).exists():
+                raise ValueError("username doesnot exists")
+            user=User.objects.get(username=username)
+            if not user.check_password(password):
+                 raise ValueError("password is incorrect")
+            login(request,user)
+            messages.success(request,"login successfully")
+            return redirect('/home')
+            
+        except Exception as e:
+                messages.error(request, str(e))
+                return render(request, 'app/login.html')
+            
+
