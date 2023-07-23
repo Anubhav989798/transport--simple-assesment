@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import login,logout
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
-from .models import Question
+from .models import Question,Answer
 
 
 @csrf_exempt
@@ -76,7 +76,11 @@ def LoginView(request):
 
 def logoutView(request):
     logout(request)
-    return render(request,'app/home.html')
+    question_list=Question.objects.all().order_by('-created_at')
+    context={
+        'question':question_list,
+    }
+    return render(request,'app/home.html',context)
             
 
 class homeView(View):
@@ -102,13 +106,40 @@ class PostingQuestion(View):
         }
         return render(request,'app/home.html',context)
 
-#Viewing posted answer and also post your answer
+#Viewing posted answer 
 class AnswerView(View):
     def get(self,request,pk):
         question_list=Question.objects.get(id=pk)
+        answer=Answer.objects.filter(question_id=pk).order_by('-created_at')
         context={
            'question':question_list,
+           'answer':answer
         }
         return render(request,'app/answerview.html',context)
+    
+#posting  answer 
+class postAnswerView(View):
+    def get(self,request,pk):
+        return render(request,'app/answerpost.html',{'id':pk})
+    
+    @csrf_exempt
+    def post(self,request,pk):
+        try:
+            answer=request.POST.get('answer','').strip()
+            Answer.objects.create(answer=answer,question_id=pk,user_id=request.user.id)
+            question_list=Question.objects.get(id=pk)
+            answer=Answer.objects.filter(question_id=pk).order_by('-created_at')
+            context={
+            'question':question_list,
+            'answer':answer
+            }
+            return render(request,'app/answerview.html',context)
+        except Exception as e:
+            print(str(e))
+            question_list=Question.objects.all().order_by('-created_at')
+            context={
+            'question':question_list,
+            }
+            return render(request,'app/home.html',context) 
 
 
