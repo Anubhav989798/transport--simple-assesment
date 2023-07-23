@@ -1,0 +1,20 @@
+{% extends 'app/base.html' %}
+
+
+{% block content %}
+{% if question %}
+    {% for question in question%}
+    <div class="card text-white bg-primary mb-3 my-3 mx-2" style="max-width: 250rem;">
+        <div class="card-header">Question</div>
+        <div class="card-body">
+        <p class="card-text">{{question.question}}</p>
+        </div>
+    </div>
+    <button type="button" class="btn btn-success mx-2"><a href="{% url 'answerview' pk=question.id %}">ViewAnswer</a></button>
+    {% endfor %}
+{% else %}
+    <div class="card text-white bg-primary mb-3 my-3 mx-2" style="max-width: 250rem;">
+        <div class="card-header">No Question Posted Yet</div>
+    </div>
+{% endif %}
+{% endblock %}

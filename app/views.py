@@ -4,9 +4,10 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 import re
 from django.http import HttpResponseRedirect
-from django.contrib.auth import login
+from django.contrib.auth import login,logout
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
+from .models import Question
 
 
 @csrf_exempt
@@ -72,5 +73,42 @@ def LoginView(request):
         except Exception as e:
                 messages.error(request, str(e))
                 return render(request, 'app/login.html')
+
+def logoutView(request):
+    logout(request)
+    return render(request,'app/home.html')
             
+
+class homeView(View):
+    def get(self,request,*args, **kwargs):
+        question_list=Question.objects.all().order_by('-created_at')
+        context={
+           'question':question_list,
+        }
+        return render(request,'app/home.html',context)
+    
+#posting a question
+class PostingQuestion(View):
+    def get(self,request,*args, **kwargs):
+        return render(request,'app/questionpost.html')
+    
+    @csrf_exempt
+    def post(self,request,*args, **kwargs):
+        question=request.POST.get('question','').strip()
+        Question.objects.create(question=question,user_id=request.user.id)
+        question_list=Question.objects.all().order_by('-created_at')
+        context={
+           'question':question_list,
+        }
+        return render(request,'app/home.html',context)
+
+#Viewing posted answer and also post your answer
+class AnswerView(View):
+    def get(self,request,pk):
+        question_list=Question.objects.get(id=pk)
+        context={
+           'question':question_list,
+        }
+        return render(request,'app/answerview.html',context)
+
 
