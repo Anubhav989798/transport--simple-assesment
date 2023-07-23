@@ -134,7 +134,6 @@ class postAnswerView(View):
             'question':question_list,
             'answer':answer
             }
-            print("hello")
             return render(request,'app/answerview.html',context)
         except Exception as e:
             print(str(e))
