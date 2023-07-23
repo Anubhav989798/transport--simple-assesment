@@ -42,7 +42,7 @@ def SignUpView(request):
             if User.objects.filter(username=username).exists():
                 raise ValueError("username already exist")
             
-            
+
             user=User.objects.create_user(username=username,email=email,first_name=name)
             user.set_password(password)
             user.save()
