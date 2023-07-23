@@ -7,7 +7,8 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import login,logout
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
-from .models import Question,Answer
+from .models import Question,Answer,like
+from django.db.models import Count
 
 
 @csrf_exempt
@@ -68,7 +69,7 @@ def LoginView(request):
                  raise ValueError("password is incorrect")
             login(request,user)
             messages.success(request,"login successfully")
-            return redirect('/home')
+            return redirect('/')
             
         except Exception as e:
                 messages.error(request, str(e))
@@ -110,7 +111,7 @@ class PostingQuestion(View):
 class AnswerView(View):
     def get(self,request,pk):
         question_list=Question.objects.get(id=pk)
-        answer=Answer.objects.filter(question_id=pk).order_by('-created_at')
+        answer=Answer.objects.filter(question_id=pk).annotate(c=Count('like')).order_by('-created_at')
         context={
            'question':question_list,
            'answer':answer
@@ -128,12 +129,35 @@ class postAnswerView(View):
             answer=request.POST.get('answer','').strip()
             Answer.objects.create(answer=answer,question_id=pk,user_id=request.user.id)
             question_list=Question.objects.get(id=pk)
-            answer=Answer.objects.filter(question_id=pk).order_by('-created_at')
+            answer=Answer.objects.filter(question_id=pk).annotate(c=Count('like')).order_by('-created_at')
             context={
             'question':question_list,
             'answer':answer
             }
             return render(request,'app/answerview.html',context)
+        except Exception as e:
+            print(str(e))
+            question_list=Question.objects.all().order_by('-created_at')
+            context={
+            'question':question_list,
+            }
+            return render(request,'app/home.html',context) 
+        
+#adding like to the answer
+class likeView(View):
+    @csrf_exempt
+    def post(self,request,pk):
+        try:
+            if not like.objects.filter(answer_id=pk,user_id=request.user.id).exists():
+                like.objects.create(answer_id=pk,user_id=request.user.id)
+            ans=Answer.objects.get(id=pk)
+            answer=Answer.objects.filter(question_id=ans.question_id).annotate(c=Count('like')).order_by('-created_at')
+            question_list=Question.objects.get(id=ans.question_id)
+            context={
+            'question':question_list,
+            'answer':answer
+            }
+            return render(request,'app/answerview.html',context) 
         except Exception as e:
             print(str(e))
             question_list=Question.objects.all().order_by('-created_at')

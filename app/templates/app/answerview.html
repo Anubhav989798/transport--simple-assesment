@@ -9,7 +9,7 @@
         <p class="card-text">{{question.question}}</p>
         </div>
     </div>
-    <h3>Answer are:</h3>
+    <h3>Answers are:</h3>
     {% if answer %}
         {% for ans in answer %}
         <div class="card text-dark bg-info mb-3 my-3 mx-2" style="max-width: 250rem;">
@@ -17,6 +17,15 @@
             <div class="card-body">
             <p class="card-text">{{ans.answer}}</p>
             </div>
+            <form action="{% url 'like' pk=ans.id %}" method="post">
+                {% csrf_token %}
+                <div class='row'>
+                      <a href="#" >Total_like_count:{{ans.c}}</a>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button class="btn btn-outline-success me-md-1" type="submit">Like</button>
+                    </div>
+                </div>
+            </form>
         </div>
         {% endfor %}
     {% else %}
