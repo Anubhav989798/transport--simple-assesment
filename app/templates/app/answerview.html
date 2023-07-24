@@ -21,9 +21,11 @@
                 {% csrf_token %}
                 <div class='row'>
                       <a href="#" >Total_like_count:{{ans.c}}</a>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button class="btn btn-outline-success me-md-1" type="submit">Like</button>
-                    </div>
+                    {% if user.is_authenticated %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button class="btn btn-outline-success me-md-1" type="submit">Like</button>
+                        </div>
+                    {% endif %}
                 </div>
             </form>
         </div>
